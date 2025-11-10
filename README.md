@@ -92,14 +92,6 @@ Puedes probar la API con **Postman** o **Insomnia**, usando los endpoints docume
 
 ---
 
-## 📸 Vista previa
-
-Incluye capturas o GIFs aquí:
-
-![Interfaz MediPlan](docs/captura-pacientes.png)
-
----
-
 ## 📄 Licencia
 
 Este proyecto se distribuye bajo la licencia [MIT](LICENSE).
@@ -109,6 +101,5 @@ Este proyecto se distribuye bajo la licencia [MIT](LICENSE).
 ## 👨‍💻 Autor
 
 **Carlos Andrés Jaramillo Patiño**  
-Instructor SENA | Arquitecto de Soluciones | Especialista en Ciberseguridad  
-📧 contacto: carlosajp@correo.com  
-🌐 [LinkedIn](https://www.linkedin.com/in/carlosajp/)
+📧 contacto: ing.andres.jaramillo@gmail.com  
+🌐 [LinkedIn](https://www.linkedin.com/in/candesjara/)
