@@ -14,22 +14,26 @@ export const Cita = sequelize.define(
     },
     doctor_id: {
       type: DataTypes.INTEGER,
-      allowNull: true, // ✅ puede ser NULL si se elimina el doctor
+      // Clave obligatoria: una cita siempre debe tener doctor asignado
+      allowNull: false,
       references: {
         model: Doctor,
         key: "id",
       },
-      onDelete: "SET NULL",
+      // RESTRICT evita eliminar el doctor si tiene citas relacionadas
+      onDelete: "RESTRICT",
       onUpdate: "CASCADE",
     },
     paciente_id: {
       type: DataTypes.INTEGER,
-      allowNull: true, // ✅ puede ser NULL si se elimina el paciente
+      // Clave obligatoria: una cita siempre debe tener paciente asignado
+      allowNull: false,
       references: {
         model: Paciente,
         key: "id",
       },
-      onDelete: "SET NULL",
+      // RESTRICT evita eliminar el paciente si tiene citas relacionadas
+      onDelete: "RESTRICT",
       onUpdate: "CASCADE",
     },
     creado_en: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
@@ -41,7 +45,17 @@ export const Cita = sequelize.define(
 );
 
 // Relaciones explícitas
-Doctor.hasMany(Cita, { foreignKey: "doctor_id" });
-Paciente.hasMany(Cita, { foreignKey: "paciente_id" });
+Doctor.hasMany(Cita, {
+  foreignKey: "doctor_id",
+  // RESTRICT mantiene integridad referencial de citas existentes
+  onDelete: "RESTRICT",
+  onUpdate: "CASCADE"
+});
+Paciente.hasMany(Cita, {
+  foreignKey: "paciente_id",
+  // RESTRICT mantiene integridad referencial de citas existentes
+  onDelete: "RESTRICT",
+  onUpdate: "CASCADE"
+});
 Cita.belongsTo(Doctor, { foreignKey: "doctor_id" });
 Cita.belongsTo(Paciente, { foreignKey: "paciente_id" });
