@@ -16,7 +16,7 @@ describe("Controller error flows", () => {
     jest.restoreAllMocks();
   });
 
-  test("crearDoctor retorna 400 cuando falla create", async () => {
+  test("crearDoctor retorna 500 cuando falla create", async () => {
     jest.spyOn(Doctor, "findOne").mockResolvedValue(null);
     jest.spyOn(Doctor, "create").mockRejectedValue(new Error("db error"));
     const req = {
@@ -31,9 +31,9 @@ describe("Controller error flows", () => {
 
     await crearDoctor(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Error al crear el doctor." })
+      expect.objectContaining({ message: "Error interno del servidor" })
     );
   });
 
@@ -46,7 +46,7 @@ describe("Controller error flows", () => {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Error al obtener citas" })
+      expect.objectContaining({ message: "Error interno del servidor" })
     );
   });
 
@@ -59,7 +59,7 @@ describe("Controller error flows", () => {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.stringMatching(/^Error al iniciar sesi/) })
+      expect.objectContaining({ message: "Error interno del servidor" })
     );
   });
 });

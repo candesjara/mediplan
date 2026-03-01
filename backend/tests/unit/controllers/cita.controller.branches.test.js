@@ -112,7 +112,7 @@ describe("cita controller branches", () => {
     );
   });
 
-  test("actualizarCita responde 400 cuando update falla", async () => {
+  test("actualizarCita responde 500 cuando update falla", async () => {
     jest.spyOn(Cita, "findByPk").mockResolvedValue({
       id: 1,
       fecha: new Date("2099-01-01T10:00:00.000Z"),
@@ -129,8 +129,8 @@ describe("cita controller branches", () => {
 
     await actualizarCita(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error al actualizar cita" }));
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error interno del servidor" }));
   });
 
   test("eliminarCita responde ok", async () => {
@@ -143,14 +143,14 @@ describe("cita controller branches", () => {
     expect(res.json).toHaveBeenCalledWith({ message: "Cita eliminada correctamente" });
   });
 
-  test("eliminarCita responde 400 cuando destroy falla", async () => {
+  test("eliminarCita responde 500 cuando destroy falla", async () => {
     jest.spyOn(Cita, "destroy").mockRejectedValue(new Error("db error"));
     const req = { params: { id: "1" } };
     const res = crearRes();
 
     await eliminarCita(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error al eliminar cita" }));
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error interno del servidor" }));
   });
 });

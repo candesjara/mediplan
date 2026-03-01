@@ -5,6 +5,13 @@ import { Op } from "sequelize";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^\d{3,15}$/;
 const documentoRegex = /^\d{3,15}$/;
+const handleServerError = (res, error) => {
+  const payload = { message: "Error interno del servidor" };
+  if (process.env.NODE_ENV === "development") {
+    payload.detail = error.message;
+  }
+  return res.status(500).json(payload);
+};
 
 // ✅ Obtener todos los pacientes
 export const obtenerPacientes = async (req, res) => {
@@ -12,7 +19,7 @@ export const obtenerPacientes = async (req, res) => {
     const pacientes = await Paciente.findAll();
     res.json(pacientes);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener pacientes", error: error.message });
+    return handleServerError(res, error);
   }
 };
 
@@ -60,10 +67,7 @@ export const crearPaciente = async (req, res) => {
     res.status(201).json(paciente);
 
   } catch (error) {
-    res.status(400).json({
-      message: "Error al crear paciente.",
-      error: error.message,
-    });
+    return handleServerError(res, error);
   }
 };
 
@@ -121,7 +125,7 @@ export const actualizarPaciente = async (req, res) => {
     await Paciente.update(req.body, { where: { id } });
     res.json({ message: "Paciente actualizado" });
   } catch (error) {
-    res.status(400).json({ message: "Error al actualizar paciente", error });
+    return handleServerError(res, error);
   }
 };
 
@@ -151,6 +155,6 @@ export const eliminarPaciente = async (req, res) => {
 
     res.json({ message: "Paciente eliminado" });
   } catch (error) {
-    res.status(400).json({ message: "Error al eliminar paciente", error });
+    return handleServerError(res, error);
   }
 };

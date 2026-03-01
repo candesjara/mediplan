@@ -11,9 +11,22 @@ export const verificarToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.usuario = decoded; // guarda info del usuario en la request
+    // Compatibilidad: se conserva req.usuario y se agrega req.user
+    req.usuario = decoded;
+    req.user = decoded;
     next();
   } catch (error) {
     res.status(401).json({ message: "Token inválido o expirado." });
   }
+};
+
+export const requireRole = (role) => {
+  return (req, res, next) => {
+    if (!req.user || req.user.rol !== role) {
+      return res.status(403).json({
+        message: "No autorizado para esta acción",
+      });
+    }
+    next();
+  };
 };

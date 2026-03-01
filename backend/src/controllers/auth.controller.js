@@ -2,6 +2,14 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Usuario } from "../models/Usuario.js";
 
+const handleServerError = (res, error) => {
+  const payload = { message: "Error interno del servidor" };
+  if (process.env.NODE_ENV === "development") {
+    payload.detail = error.message;
+  }
+  return res.status(500).json(payload);
+};
+
 const generarToken = (usuario) => {
   return jwt.sign(
     { id: usuario.id, rol: usuario.rol, correo: usuario.correo },
@@ -41,7 +49,7 @@ export const registrarUsuario = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Error en el registro", error });
+    return handleServerError(res, error);
   }
 };
 
@@ -71,6 +79,6 @@ export const loginUsuario = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Error al iniciar sesión", error });
+    return handleServerError(res, error);
   }
 };

@@ -90,4 +90,55 @@ describe("protected routes auth scenarios", () => {
     expect(res.status).toBe(200);
     expect(res.body.rol).toBe("admin");
   });
+
+  test("POST /api/doctores responde 403 con rol no admin", async () => {
+    process.env.JWT_SECRET = "test-secret";
+    const token = jwt.sign({ id: 1, correo: "doctor@test.com", rol: "doctor" }, process.env.JWT_SECRET);
+
+    const app = express();
+    app.use(express.json());
+    app.use("/api/doctores", doctorRoutes);
+
+    const res = await request(app)
+      .post("/api/doctores")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ nombre: "Dr. Demo", especialidad: "Pediatria", correo: "demo@test.com" });
+
+    expect(res.status).toBe(403);
+    expect(res.body.message).toMatch(/No autorizado/i);
+  });
+
+  test("POST /api/pacientes responde 403 con rol no admin", async () => {
+    process.env.JWT_SECRET = "test-secret";
+    const token = jwt.sign({ id: 1, correo: "doctor@test.com", rol: "doctor" }, process.env.JWT_SECRET);
+
+    const app = express();
+    app.use(express.json());
+    app.use("/api/pacientes", pacienteRoutes);
+
+    const res = await request(app)
+      .post("/api/pacientes")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ nombre: "Ana", documento: "9001", correo: "ana@test.com" });
+
+    expect(res.status).toBe(403);
+    expect(res.body.message).toMatch(/No autorizado/i);
+  });
+
+  test("PUT /api/citas/:id responde 403 con rol no admin", async () => {
+    process.env.JWT_SECRET = "test-secret";
+    const token = jwt.sign({ id: 1, correo: "doctor@test.com", rol: "doctor" }, process.env.JWT_SECRET);
+
+    const app = express();
+    app.use(express.json());
+    app.use("/api/citas", citaRoutes);
+
+    const res = await request(app)
+      .put("/api/citas/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ estado: "confirmada" });
+
+    expect(res.status).toBe(403);
+    expect(res.body.message).toMatch(/No autorizado/i);
+  });
 });

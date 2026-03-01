@@ -52,7 +52,7 @@ describe("paciente controller branches", () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining("correo") }));
   });
 
-  test("crearPaciente retorna 400 cuando create falla", async () => {
+  test("crearPaciente retorna 500 cuando create falla", async () => {
     jest.spyOn(Paciente, "findOne").mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     jest.spyOn(Paciente, "create").mockRejectedValue(new Error("db error"));
 
@@ -61,8 +61,8 @@ describe("paciente controller branches", () => {
 
     await crearPaciente(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error al crear paciente." }));
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error interno del servidor" }));
   });
 
   test("crearPaciente retorna 400 cuando el nombre es muy corto", async () => {
@@ -158,7 +158,7 @@ describe("paciente controller branches", () => {
     );
   });
 
-  test("actualizarPaciente retorna 400 cuando update falla", async () => {
+  test("actualizarPaciente retorna 500 cuando update falla", async () => {
     jest.spyOn(Paciente, "findByPk").mockResolvedValue({ id: 1, nombre: "Ana" });
     jest.spyOn(Paciente, "update").mockRejectedValue(new Error("db error"));
     const req = { params: { id: "1" }, body: { nombre: "Ana 2" } };
@@ -166,8 +166,8 @@ describe("paciente controller branches", () => {
 
     await actualizarPaciente(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error al actualizar paciente" }));
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error interno del servidor" }));
   });
 
   test("eliminarPaciente responde ok", async () => {
@@ -194,7 +194,7 @@ describe("paciente controller branches", () => {
     );
   });
 
-  test("eliminarPaciente retorna 400 cuando destroy falla", async () => {
+  test("eliminarPaciente retorna 500 cuando destroy falla", async () => {
     jest.spyOn(Cita, "count").mockResolvedValue(0);
     jest.spyOn(Paciente, "destroy").mockRejectedValue(new Error("db error"));
     const req = { params: { id: "1" } };
@@ -202,7 +202,7 @@ describe("paciente controller branches", () => {
 
     await eliminarPaciente(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error al eliminar paciente" }));
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: "Error interno del servidor" }));
   });
 });

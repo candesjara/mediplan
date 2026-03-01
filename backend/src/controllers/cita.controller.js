@@ -4,6 +4,13 @@ import { Paciente } from "../models/Paciente.js";
 import { Op } from "sequelize";
 
 const ESTADOS_VALIDOS = ["pendiente", "confirmada", "cancelada"];
+const handleServerError = (res, error) => {
+  const payload = { message: "Error interno del servidor" };
+  if (process.env.NODE_ENV === "development") {
+    payload.detail = error.message;
+  }
+  return res.status(500).json(payload);
+};
 
 // ✅ Obtener todas las citas (solo admin)
 export const obtenerCitas = async (req, res) => {
@@ -16,7 +23,7 @@ export const obtenerCitas = async (req, res) => {
     });
     res.json(citas);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener citas", error });
+    return handleServerError(res, error);
   }
 };
 
@@ -92,7 +99,7 @@ export const crearCita = async (req, res) => {
 
     res.status(201).json(nuevaCita);
   } catch (error) {
-    res.status(400).json({ message: "Error al crear cita", error });
+    return handleServerError(res, error);
   }
 };
 
@@ -182,7 +189,7 @@ export const actualizarCita = async (req, res) => {
     await Cita.update(req.body, { where: { id } });
     res.json({ message: "Cita actualizada correctamente" });
   } catch (error) {
-    res.status(400).json({ message: "Error al actualizar cita", error });
+    return handleServerError(res, error);
   }
 };
 
@@ -193,6 +200,6 @@ export const eliminarCita = async (req, res) => {
     await Cita.destroy({ where: { id } });
     res.json({ message: "Cita eliminada correctamente" });
   } catch (error) {
-    res.status(400).json({ message: "Error al eliminar cita", error });
+    return handleServerError(res, error);
   }
 };
