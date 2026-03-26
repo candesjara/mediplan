@@ -17,27 +17,49 @@ export default function Login() {
       login(data);
       navigate("/dashboard");
     } catch (err) {
-      setError("Credenciales inválidas");
+      setError("Credenciales invalidas");
     }
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: 400 }}>
-      <h3 className="mb-3 text-center">Iniciar Sesión</h3>
-      {error && <div className="alert alert-danger">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label>Correo</label>
-          <input type="email" className="form-control"
-            value={correo} onChange={(e) => setCorreo(e.target.value)} required />
+    <div className="container py-5">
+      <div className="mx-auto rounded-4 border bg-white p-4 p-md-5 shadow-sm" style={{ maxWidth: 420 }}>
+        <div className="text-center mb-4">
+          <span className="badge text-bg-success-subtle text-success-emphasis mb-3">
+            Acceso administrativo
+          </span>
+          <h3 className="mb-2">Iniciar sesion</h3>
+          <p className="text-secondary mb-0">
+            Ingresa para gestionar pacientes, doctores y citas en MediPlan.
+          </p>
         </div>
-        <div className="mb-3">
-          <label>Contraseña</label>
-          <input type="password" className="form-control"
-            value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </div>
-        <button className="btn btn-primary w-100">Ingresar</button>
-      </form>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label" htmlFor="correo">Correo</label>
+            <input
+              id="correo"
+              type="email"
+              className="form-control"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="form-label" htmlFor="password">Contrasena</label>
+            <input
+              id="password"
+              type="password"
+              className="form-control"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button className="btn btn-success w-100">Ingresar</button>
+        </form>
+      </div>
     </div>
   );
 }

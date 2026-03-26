@@ -4,13 +4,15 @@ import Dashboard from "./pages/Dashboard";
 import Doctores from "./pages/Doctores";
 import Pacientes from "./pages/Pacientes";
 import Citas from "./pages/Citas";
+import LandingPage from "./pages/LandingPage";
+import PublicAppointmentPage from "./pages/PublicAppointmentPage";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { useContext } from "react";
 import Layout from "./components/Layout";
 
 const PrivateRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
-  return user ? children : <Navigate to="/" />;
+  return user ? children : <Navigate to="/admin/login" />;
 };
 
 export default function App() {
@@ -18,7 +20,9 @@ export default function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/agendar-cita" element={<PublicAppointmentPage />} />
+          <Route path="/admin/login" element={<Login />} />
           <Route
             path="/dashboard"
             element={
@@ -51,6 +55,7 @@ export default function App() {
               </PrivateRoute>
             }
           />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>
     </AuthProvider>

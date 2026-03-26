@@ -1,16 +1,14 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { AuthProvider } from "../../context/AuthContext";
+import Login from "../../pages/Login";
+import api from "../../api/axiosConfig";
+
+const mockedNavigate = jest.fn();
 
 jest.mock("react-router-dom", () => ({
   __esModule: true,
-  BrowserRouter: ({ children }) => <>{children}</>,
-  Routes: ({ children }) => <>{Array.isArray(children) ? children[0] : children}</>,
-  Route: ({ element }) => element,
-  Navigate: () => null,
-  useNavigate: () => jest.fn()
+  useNavigate: () => mockedNavigate,
 }), { virtual: true });
-
-import App from "../../App";
-import api from "../../api/axiosConfig";
 
 jest.mock("../../api/axiosConfig", () => ({
   __esModule: true,
@@ -25,6 +23,7 @@ describe("Integracion login", () => {
     localStorage.clear();
     api.post.mockReset();
     api.get.mockReset();
+    mockedNavigate.mockReset();
   });
 
   test("envia formulario y guarda sesion", async () => {
@@ -35,13 +34,14 @@ describe("Integracion login", () => {
       }
     });
 
-    render(<App />);
+    render(
+      <AuthProvider>
+        <Login />
+      </AuthProvider>
+    );
 
-    const emailInput = document.querySelector('input[type="email"]');
-    const passInput = document.querySelector('input[type="password"]');
-
-    fireEvent.change(emailInput, { target: { value: "ana@test.com" } });
-    fireEvent.change(passInput, { target: { value: "123456" } });
+    fireEvent.change(screen.getByLabelText(/correo/i), { target: { value: "ana@test.com" } });
+    fireEvent.change(screen.getByLabelText(/contrasena/i), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: /ingresar/i }));
 
     await waitFor(() => {
@@ -52,18 +52,20 @@ describe("Integracion login", () => {
     });
 
     expect(localStorage.getItem("token")).toBe("token-demo");
+    expect(mockedNavigate).toHaveBeenCalledWith("/dashboard");
   });
 
   test("muestra error cuando credenciales son invalidas", async () => {
     api.post.mockRejectedValue(new Error("credenciales invalidas"));
 
-    render(<App />);
+    render(
+      <AuthProvider>
+        <Login />
+      </AuthProvider>
+    );
 
-    const emailInput = document.querySelector('input[type="email"]');
-    const passInput = document.querySelector('input[type="password"]');
-
-    fireEvent.change(emailInput, { target: { value: "ana@test.com" } });
-    fireEvent.change(passInput, { target: { value: "bad" } });
+    fireEvent.change(screen.getByLabelText(/correo/i), { target: { value: "ana@test.com" } });
+    fireEvent.change(screen.getByLabelText(/contrasena/i), { target: { value: "bad" } });
     fireEvent.click(screen.getByRole("button", { name: /ingresar/i }));
 
     await waitFor(() => {

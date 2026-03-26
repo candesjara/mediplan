@@ -4,6 +4,10 @@ import { Paciente } from "../models/Paciente.js";
 import { Op } from "sequelize";
 
 const ESTADOS_VALIDOS = ["pendiente", "confirmada", "cancelada"];
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^\d{3,15}$/;
+const documentoRegex = /^\d{3,15}$/;
+
 const handleServerError = (res, error) => {
   const payload = { message: "Error interno del servidor" };
   if (process.env.NODE_ENV === "development") {
@@ -12,7 +16,26 @@ const handleServerError = (res, error) => {
   return res.status(500).json(payload);
 };
 
-// ✅ Obtener todas las citas (solo admin)
+const validarDatosPaciente = ({ nombre, documento, correo, telefono }) => {
+  if (!nombre || typeof nombre !== "string" || nombre.trim().length < 3) {
+    return "El nombre del paciente debe tener al menos 3 caracteres.";
+  }
+
+  if (!documento || !documentoRegex.test(documento)) {
+    return "El documento es obligatorio y debe tener entre 3 y 15 digitos.";
+  }
+
+  if (!correo || !emailRegex.test(correo)) {
+    return "El correo del paciente es obligatorio y debe tener un formato valido.";
+  }
+
+  if (!telefono || !phoneRegex.test(telefono)) {
+    return "El telefono del paciente debe contener entre 3 y 15 digitos.";
+  }
+
+  return null;
+};
+
 export const obtenerCitas = async (req, res) => {
   try {
     const citas = await Cita.findAll({
@@ -27,12 +50,10 @@ export const obtenerCitas = async (req, res) => {
   }
 };
 
-// ✅ Crear una cita
 export const crearCita = async (req, res) => {
   try {
     const { fecha, estado, doctor_id, paciente_id } = req.body;
 
-    // Reglas de negocio para evitar citas inconsistentes
     if (!fecha || !doctor_id || !paciente_id) {
       return res.status(400).json({
         message: "La cita requiere fecha, doctor y paciente.",
@@ -103,7 +124,103 @@ export const crearCita = async (req, res) => {
   }
 };
 
-// ✅ Actualizar una cita
+export const crearCitaPublica = async (req, res) => {
+  try {
+    const { nombre, documento, correo, telefono, fecha, doctor_id } = req.body;
+
+    const errorPaciente = validarDatosPaciente({ nombre, documento, correo, telefono });
+    if (errorPaciente) {
+      return res.status(400).json({ message: errorPaciente });
+    }
+
+    if (!fecha || !doctor_id) {
+      return res.status(400).json({
+        message: "La cita requiere fecha y doctor.",
+      });
+    }
+
+    const fechaCita = new Date(fecha);
+    if (Number.isNaN(fechaCita.getTime())) {
+      return res.status(400).json({ message: "La fecha de la cita no es valida." });
+    }
+
+    if (fechaCita <= new Date()) {
+      return res.status(400).json({ message: "La cita debe programarse en una fecha futura." });
+    }
+
+    const doctor = await Doctor.findByPk(doctor_id);
+    if (!doctor) {
+      return res.status(400).json({ message: "El doctor seleccionado no existe." });
+    }
+
+    let paciente = await Paciente.findOne({ where: { documento } });
+
+    if (paciente && paciente.correo && paciente.correo !== correo) {
+      return res.status(400).json({
+        message: "Ya existe un paciente con ese documento y un correo diferente.",
+      });
+    }
+
+    if (!paciente) {
+      const pacienteCorreo = await Paciente.findOne({ where: { correo } });
+      if (pacienteCorreo && pacienteCorreo.documento !== documento) {
+        return res.status(400).json({
+          message: "Ya existe un paciente registrado con ese correo.",
+        });
+      }
+
+      paciente = await Paciente.create({
+        nombre: nombre.trim(),
+        documento,
+        correo,
+        telefono,
+      });
+    }
+
+    const choqueDoctor = await Cita.findOne({
+      where: {
+        doctor_id,
+        fecha: fechaCita,
+        estado: { [Op.in]: ["pendiente", "confirmada"] },
+      },
+    });
+
+    if (choqueDoctor) {
+      return res.status(400).json({
+        message: "El doctor ya tiene una cita activa en ese horario.",
+      });
+    }
+
+    const choquePaciente = await Cita.findOne({
+      where: {
+        paciente_id: paciente.id,
+        fecha: fechaCita,
+        estado: { [Op.in]: ["pendiente", "confirmada"] },
+      },
+    });
+
+    if (choquePaciente) {
+      return res.status(400).json({
+        message: "El paciente ya tiene una cita activa en ese horario.",
+      });
+    }
+
+    const nuevaCita = await Cita.create({
+      fecha: fechaCita,
+      estado: "pendiente",
+      doctor_id,
+      paciente_id: paciente.id,
+    });
+
+    res.status(201).json({
+      message: "La solicitud de cita fue registrada correctamente.",
+      cita: nuevaCita,
+    });
+  } catch (error) {
+    return handleServerError(res, error);
+  }
+};
+
 export const actualizarCita = async (req, res) => {
   try {
     const { id } = req.params;
@@ -193,7 +310,6 @@ export const actualizarCita = async (req, res) => {
   }
 };
 
-// ✅ Eliminar cita
 export const eliminarCita = async (req, res) => {
   try {
     const { id } = req.params;
